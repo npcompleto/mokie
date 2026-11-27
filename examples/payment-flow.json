@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "collections": [
+    { "key": "payments", "name": "Pagamenti", "description": "Flusso di pagamento con pagina di esito simulata", "enabled": true }
+  ],
+  "flowPages": [
+    {
+      "slug": "payment",
+      "title": "Pagamento simulato",
+      "description": "Scegli l'esito del pagamento da simulare.\nVerrai rimandato al redirect URL indicato dal client.",
+      "redirectTemplate": "{{ctx.redirectUrl}}",
+      "ttlSeconds": 3600,
+      "ctas": [
+        {
+          "id": "ok",
+          "label": "Paga ora",
+          "color": "green",
+          "outcome": "Pagamento autorizzato",
+          "redirectParams": { "status": "OK", "orderId": "{{ctx.orderId}}" },
+          "effects": [{ "op": "merge", "path": "payments.{{ctx.orderId}}", "value": "{\"status\":\"PAID\"}" }],
+          "delayMs": 0
+        },
+        {
+          "id": "ko-funds",
+          "label": "Fondi insufficienti",
+          "color": "red",
+          "outcome": "KO · INSUFFICIENT_FUNDS",
+          "redirectParams": { "status": "KO", "code": "INSUFFICIENT_FUNDS", "orderId": "{{ctx.orderId}}" },
+          "effects": [
+            { "op": "merge", "path": "payments.{{ctx.orderId}}", "value": "{\"status\":\"FAILED\",\"reason\":\"INSUFFICIENT_FUNDS\"}" }
+          ],
+          "delayMs": 0
+        },
+        {
+          "id": "ko-expired",
+          "label": "Carta scaduta",
+          "color": "orange",
+          "outcome": "KO · CARD_EXPIRED",
+          "redirectParams": { "status": "KO", "code": "CARD_EXPIRED", "orderId": "{{ctx.orderId}}" },
+          "effects": [
+            { "op": "merge", "path": "payments.{{ctx.orderId}}", "value": "{\"status\":\"FAILED\",\"reason\":\"CARD_EXPIRED\"}" }
+          ],
+          "delayMs": 0
+        },
+        {
+          "id": "ko-3ds",
+          "label": "Autenticazione 3DS fallita",
+          "color": "orange",
+          "outcome": "KO · AUTH_FAILED",
+          "redirectParams": { "status": "KO", "code": "AUTH_FAILED", "orderId": "{{ctx.orderId}}" },
+          "effects": [
+            { "op": "merge", "path": "payments.{{ctx.orderId}}", "value": "{\"status\":\"FAILED\",\"reason\":\"AUTH_FAILED\"}" }
+          ],
+          "delayMs": 0
+        },
+        {
+          "id": "cancel",
+          "label": "Annulla",
+          "color": "gray",
+          "outcome": "Annullato dall'utente",
+          "redirectParams": { "status": "CANCELLED", "orderId": "{{ctx.orderId}}" },
+          "effects": [{ "op": "merge", "path": "payments.{{ctx.orderId}}", "value": "{\"status\":\"CANCELLED\"}" }],
+          "delayMs": 0
+        }
+      ]
+    }
+  ],
+  "mocks": [
+    {
+      "collection": "payments",
+      "name": "Crea pagamento → URL pagina di esito",
+      "enabled": true,
+      "priority": 10,
+      "method": "POST",
+      "pathPattern": "/payments",
+      "conditionMode": "all",
+      "conditions": [{ "source": "body", "key": "$.redirect_url", "operator": "exists", "value": "" }],
+      "effects": [
+        {
+          "op": "set",
+          "path": "payments.{{body.orderId}}",
+          "value": "{\"paymentId\":\"{{id 'payment'}}\",\"orderId\":\"{{body.orderId}}\",\"amount\":{{default body.amount 0}},\"status\":\"PENDING\"}"
+        }
+      ],
+      "response": {
+        "status": 201,
+        "headers": { "content-type": "application/json" },
+        "body": "{\n  \"paymentId\": \"{{id 'payment'}}\",\n  \"status\": \"PENDING\",\n  \"paymentUrl\": \"{{flowUrl 'payment' redirectUrl=body.redirect_url orderId=body.orderId amount=body.amount}}\"\n}",
+        "delayMs": 0
+      },
+      "script": ""
+    },
+    {
+      "collection": "payments",
+      "name": "Stato pagamento",
+      "enabled": true,
+      "priority": 10,
+      "method": "GET",
+      "pathPattern": "/payments/:orderId",
+      "conditionMode": "all",
+      "conditions": [{ "source": "state", "key": "payments.{{params.orderId}}", "operator": "exists", "value": "" }],
+      "effects": [],
+      "response": {
+        "status": 200,
+        "headers": { "content-type": "application/json" },
+        "body": "{{json (get state (concat 'payments.' params.orderId)) true}}",
+        "delayMs": 0
+      },
+      "script": ""
+    }
+  ]
+}

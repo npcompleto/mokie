@@ -1,0 +1,24 @@
+{
+  "name": "@mokie/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node --import tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/static": "^8.0.0",
+    "@mokie/shared": "*",
+    "fastify": "^5.0.0",
+    "handlebars": "^4.7.8",
+    "jsonpath-plus": "^10.0.0",
+    "tsx": "^4.19.0",
+    "undici": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "vitest": "^3.0.0"
+  }
+}

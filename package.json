@@ -1,0 +1,19 @@
+{
+  "name": "mokie",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mokie — mock server con stato condiviso, proxy passthrough e flussi interattivi",
+  "type": "module",
+  "workspaces": ["packages/shared", "packages/server", "packages/ui"],
+  "scripts": {
+    "dev": "concurrently -n server,ui -c blue,magenta \"npm run dev -w @mokie/server\" \"npm run dev -w @mokie/ui\"",
+    "build": "npm run build -w @mokie/ui",
+    "start": "npm run start -w @mokie/server",
+    "test": "npm test -w @mokie/server",
+    "typecheck": "tsc -p packages/server --noEmit && tsc -p packages/ui --noEmit"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,12 @@
+services:
+  mokie:
+    build: .
+    ports:
+      - "8080:8080" # mock/proxy su ogni path, UI di amministrazione su /_admin/
+    volumes:
+      - mokie-data:/data
+    environment:
+      - MOKIE_HOST=0.0.0.0
+      # - MOKIE_PUBLIC_URL=http://mokie.local:8080   (modificabile anche da UI → Impostazioni)
+volumes:
+  mokie-data:
