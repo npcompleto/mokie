@@ -66,7 +66,8 @@ export function parseBody(raw: Buffer, contentType: string | undefined): unknown
 
 export function toMokieRequest(req: IncomingReq, publicUrl: string): MokieRequest {
   const headers = flattenHeaders(req.headers);
-  const u = new URL(req.url, 'http://x');
+  // prefix the origin (not `new URL(url, base)`): a target like `//a/b` must stay a path, not become host `a`
+  const u = new URL('http://x' + (req.url.startsWith('/') ? req.url : '/' + req.url));
   const proto = (headers['x-forwarded-proto']?.split(',')[0].trim() as string) || req.protocol || 'http';
   const host = headers['x-forwarded-host'] || headers['host'] || 'localhost';
   return {

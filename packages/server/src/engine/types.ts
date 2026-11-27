@@ -6,6 +6,8 @@ export type IncomingReq = {
   /** path + query string, as received */
   url: string;
   headers: Record<string, string | string[] | undefined>;
+  /** headers exactly as received (case, order, duplicates): [name, value, ...] */
+  rawHeaders?: string[];
   rawBody: Buffer;
   remoteAddress?: string;
   protocol?: 'http' | 'https';
@@ -35,6 +37,9 @@ export type OutgoingRes = {
   mockId?: number | null;
   backendId?: number | null;
   note?: string;
+  /** proxied responses: reason phrase and headers exactly as the backend sent them (sent as is to the client) */
+  statusMessage?: string;
+  rawHeaders?: string[];
   /** decoded body for logging, when different from `body` (e.g. gzip) */
   logBody?: Buffer;
 };

@@ -99,10 +99,20 @@ export async function createMokie(config: MokieConfig): Promise<Mokie> {
           method: req.method,
           url: req.raw.url ?? req.url,
           headers: req.headers,
+          rawHeaders: req.raw.rawHeaders,
           rawBody: Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
           remoteAddress: req.ip,
           protocol: req.protocol as 'http' | 'https',
         });
+        if (out.rawHeaders) {
+          // passthrough: write the backend's status line and headers exactly as received (Fastify would lower-case them)
+          reply.hijack();
+          const res = reply.raw;
+          res.sendDate = false;
+          res.writeHead(out.status, out.statusMessage || undefined, out.rawHeaders);
+          res.end(req.method === 'HEAD' ? undefined : out.body);
+          return reply;
+        }
         reply.code(out.status);
         for (const [k, v] of Object.entries(out.headers)) reply.header(k, v);
         return reply.send(out.body);

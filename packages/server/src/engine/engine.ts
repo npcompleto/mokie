@@ -97,7 +97,17 @@ export class Engine {
     }
     try {
       const r = await forward(backend, inReq, req);
-      return { status: r.status, headers: r.headers, body: r.body, logBody: r.decoded, source: 'proxy', backendId: backend.id, note };
+      return {
+        status: r.status,
+        statusMessage: r.statusMessage,
+        headers: r.headers,
+        rawHeaders: r.rawHeaders,
+        body: r.body,
+        logBody: r.decoded,
+        source: 'proxy',
+        backendId: backend.id,
+        note,
+      };
     } catch (e) {
       return {
         status: 502,
